@@ -4,8 +4,9 @@ import (
 	"context"
 	"log"
 	"sgp/Internal/model"
-	"google.golang.org/api/iterator"
+	"fmt"
 	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
 )
 
 type AlunoRepository struct{
@@ -17,7 +18,7 @@ func NewAlunoRepository(client *firestore.Client) *AlunoRepository{
 }
 
 func (r *AlunoRepository) CriarAluno(ctx context.Context, aluno model.Aluno)(*model.Aluno, error){
-	docRef, _, err := r.Client.Collection("alunos").Add(ctx, map[string]interface{}{
+	docRef, _, err := r.Client.Collection("Alunos").Add(ctx, map[string]interface{}{
 		"nome": aluno.Nome,
 		"email": aluno.Email,
 	})
@@ -31,7 +32,7 @@ func (r *AlunoRepository) CriarAluno(ctx context.Context, aluno model.Aluno)(*mo
 }
 
 func(r *AlunoRepository) BuscarAlunoPorID(ctx context.Context, id string)(*model.Aluno,error ){
-	doc, err := r.Client.Collection("alunos").Doc(id).Get(ctx)
+	doc, err := r.Client.Collection("Alunos").Doc(id).Get(ctx)
 
 	if err != nil{
 		return nil, err
@@ -48,7 +49,7 @@ func(r *AlunoRepository) BuscarAlunoPorID(ctx context.Context, id string)(*model
 func (r *AlunoRepository) ListarAlunos(ctx context.Context)([]*model.Aluno, error){
 	var alunos []*model.Aluno
 
-	iter := r.Client.Collection("alunos").Documents(ctx)
+	iter := r.Client.Collection("Alunos").Documents(ctx)
 
 	for{
 		doc, err := iter.Next()
@@ -75,7 +76,7 @@ func (r *AlunoRepository) ListarAlunos(ctx context.Context)([]*model.Aluno, erro
 }
 
 func (r *AlunoRepository) AtualizarAluno(ctx context.Context, id string, aluno model.Aluno)error{
-	_, err := r.Client.Collection("alunos").Doc(id).Set(ctx, map[string]interface{}{
+	_, err := r.Client.Collection("Alunos").Doc(id).Set(ctx, map[string]interface{}{
 		"nome": aluno.Nome,
 		"email": aluno.Email,
 	})
@@ -87,10 +88,27 @@ func (r *AlunoRepository) AtualizarAluno(ctx context.Context, id string, aluno m
 }
 
 func(r *AlunoRepository) DeletarAluno(ctx context.Context, id string) error {
-	_, err := r.Client.Collection("alunos").Doc(id).Delete(ctx)
+	_, err := r.Client.Collection("Alunos").Doc(id).Delete(ctx)
 	if err != nil {
 		log.Printf("erro ao deletar aluno com ID '%s': %v")
 		return err
 	}
 	return nil
+}
+
+func (r *AlunoRepository) GetAlunoIDPorNome(ctx context.Context, nome string) (string, error) {
+	query := r.Client.Collection("Alunos").Where("nome", "==", nome).Limit(1)
+
+	iter := query.Documents(ctx)
+	defer iter.Stop()
+
+	doc, err := iter.Next()
+	if err == iterator.Done {
+		return "", fmt.Errorf("aluno com o nome '%s' não encontrado", nome)
+	}
+	if err != nil {
+		return "", fmt.Errorf("erro ao buscar aluno por nome: %w", err)
+	}
+
+	return doc.Ref.ID, nil
 }

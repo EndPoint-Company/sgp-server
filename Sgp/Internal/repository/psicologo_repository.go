@@ -19,7 +19,7 @@ func NewPsicologoRepository(client *firestore.Client) *PsicologoRepository {
 func (r *PsicologoRepository) CriarPsicologo(
 	ctx context.Context, psicologo model.Psicologo)(*model.Psicologo, error) {
 
-	docRef, _, err := r.Client.Collection("psicologos").
+	docRef, _, err := r.Client.Collection("Psicologos").
 		Add(ctx, map[string] interface{}{
 			"nome": psicologo.Nome,
 			"email": psicologo.Email,
@@ -36,7 +36,7 @@ func (r *PsicologoRepository) CriarPsicologo(
 }
 
 func(r *PsicologoRepository) BuscarPsicologoPorID(ctx context.Context, id string)(*model.Psicologo,error ){
-	doc, err := r.Client.Collection("psicologos").Doc(id).Get(ctx)
+	doc, err := r.Client.Collection("Psicologos").Doc(id).Get(ctx)
 
 	if err != nil{
 		return nil, err
@@ -53,7 +53,7 @@ func(r *PsicologoRepository) BuscarPsicologoPorID(ctx context.Context, id string
 func (r *PsicologoRepository) ListarPsicologos(ctx context.Context)([]*model.Psicologo, error){
 	var Psicologos []*model.Psicologo
 
-	iter := r.Client.Collection("psicologos").Documents(ctx)
+	iter := r.Client.Collection("Psicologos").Documents(ctx)
 
 	for {
 		doc, err := iter.Next()
@@ -86,7 +86,7 @@ func (r *PsicologoRepository) ListarPsicologos(ctx context.Context)([]*model.Psi
 func (r *PsicologoRepository) AtualizarPsicologo(
 	ctx context.Context, id string, Psicologo model.Psicologo) error {
 
-	_, err := r.Client.Collection("psicologos").
+	_, err := r.Client.Collection("Psicologos").
 		Doc(id).
 		Set(ctx, map[string] interface{} {
 			"nome": Psicologo.Nome,
@@ -104,7 +104,7 @@ func (r *PsicologoRepository) AtualizarPsicologo(
 func(r *PsicologoRepository) DeletarPsicologo(
 	ctx context.Context, id string) error {
 
-	_, err := r.Client.Collection("psicologos").Doc(id).Delete(ctx)
+	_, err := r.Client.Collection("Psicologos").Doc(id).Delete(ctx)
 
 	if err != nil {
 		log.Printf("erro ao deletar psicologo com ID '%s': %v")
