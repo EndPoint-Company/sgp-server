@@ -80,7 +80,7 @@ func (r *AlunoRepository) AtualizarAluno(ctx context.Context, id string, aluno m
 		"email": aluno.Email,
 	})
 	if err != nil {
-		log.Printf("erro ao atualizar o alno com ID '%s': %v", id, err)
+		log.Printf("erro ao atualizar o aluno com ID '%s': %v", id, err)
 		return err
 	}
 	return nil
@@ -88,7 +88,7 @@ func (r *AlunoRepository) AtualizarAluno(ctx context.Context, id string, aluno m
 
 func(r *AlunoRepository) DeletarAluno(ctx context.Context, id string) error {
 	_, err := r.Client.Collection("alunos").Doc(id).Delete(ctx)
-	if err != err {
+	if err != nil {
 		log.Printf("erro ao deletar aluno com ID '%s': %v")
 		return err
 	}
