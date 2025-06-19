@@ -17,22 +17,22 @@ func NewPsicologoRepository(client *firestore.Client) *PsicologoRepository {
 }
 
 func (r *PsicologoRepository) CriarPsicologo(
-	ctx context.Context, Psicologo model.Psicologo)(*model.Psicologo, error) {
+	ctx context.Context, psicologo model.Psicologo)(*model.Psicologo, error) {
 
 	docRef, _, err := r.Client.Collection("psicologos").
 		Add(ctx, map[string] interface{}{
-			"nome": Psicologo.Nome,
-			"email": Psicologo.Email,
-			"crp": Psicologo.CRP,
+			"nome": psicologo.Nome,
+			"email": psicologo.Email,
+			"crp": psicologo.CRP,
 		});
 
 	if err != nil{
 		return nil, err
 	}
 
-	Psicologo.ID = docRef.ID
+	psicologo.ID = docRef.ID
 
-	return &Psicologo, nil
+	return &psicologo, nil
 }
 
 func(r *PsicologoRepository) BuscarPsicologoPorID(ctx context.Context, id string)(*model.Psicologo,error ){
