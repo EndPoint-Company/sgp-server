@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"github.com/joho/godotenv"
 	//"fmt"
 	"log"
+	"os"
 	//"net/http"
 	//"sgp/Internal/repository"
 	firebase "firebase.google.com/go/v4"
@@ -12,9 +14,17 @@ import (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Erro ao carregar o arquivo .env: %v", err)
+	}
+
+	creds := os.Getenv("CREDS")
+
 	//---------------Conexao com o firebase------------------//
+
 	ctx := context.Background()
-	opt := option.WithCredentialsFile("/home/marco/sgp-server/key.json")
+	opt := option.WithCredentialsFile(creds)
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
 		log.Fatalf("erro ao inicializar firebase: %v", err)
