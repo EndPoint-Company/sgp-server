@@ -2,28 +2,28 @@ package repository
 
 import (
 	"context"
-	"log"
-	"sgp/Internal/model"
 	"fmt"
+	"sgp/Internal/model"
+
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 )
 
-type AlunoRepository struct{
+type AlunoRepository struct {
 	Client *firestore.Client
 }
 
-func NewAlunoRepository(client *firestore.Client) *AlunoRepository{
+func NewAlunoRepository(client *firestore.Client) *AlunoRepository {
 	return &AlunoRepository{Client: client}
 }
 
-func (r *AlunoRepository) CriarAluno(ctx context.Context, aluno model.Aluno)(*model.Aluno, error){
+func (r *AlunoRepository) CriarAluno(ctx context.Context, aluno model.Aluno) (*model.Aluno, error) {
 	docRef, _, err := r.Client.Collection("Alunos").Add(ctx, map[string]interface{}{
-		"nome": aluno.Nome,
+		"nome":  aluno.Nome,
 		"email": aluno.Email,
 	})
 
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
@@ -31,41 +31,40 @@ func (r *AlunoRepository) CriarAluno(ctx context.Context, aluno model.Aluno)(*mo
 	return &aluno, nil
 }
 
-func(r *AlunoRepository) BuscarAlunoPorID(ctx context.Context, id string)(*model.Aluno,error ){
+func (r *AlunoRepository) BuscarAlunoPorID(ctx context.Context, id string) (*model.Aluno, error) {
 	doc, err := r.Client.Collection("Alunos").Doc(id).Get(ctx)
 
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	var aluno model.Aluno
 
-	if err := doc.DataTo(&aluno); err != nil{
+	if err := doc.DataTo(&aluno); err != nil {
 		return nil, err
-	} 
+	}
 	aluno.ID = doc.Ref.ID
 	return &aluno, nil
 }
 
-func (r *AlunoRepository) ListarAlunos(ctx context.Context)([]*model.Aluno, error){
+func (r *AlunoRepository) ListarAlunos(ctx context.Context) ([]*model.Aluno, error) {
 	var alunos []*model.Aluno
 
 	iter := r.Client.Collection("Alunos").Documents(ctx)
 
-	for{
+	for {
 		doc, err := iter.Next()
 
 		if err == iterator.Done {
 			break
 		}
-		if err != nil{
-			log.Printf("erro ao iterar sobre alunos: %v", err)	
-			return nil, err		
+		if err != nil {
+			return nil, fmt.Errorf("erro ao iterar sobre alunos: %v", err)
 		}
 
 		var aluno model.Aluno
 
-		if err := doc.DataTo(&aluno); err != nil{
-			log.Printf("erro ao converter dados do doc '%s': %v", doc.Ref.ID, err)	
+		if err := doc.DataTo(&aluno); err != nil {
+			fmt.Printf("erro ao converter dados do doc '%s': %v", doc.Ref.ID, err)
 			continue
 		}
 
@@ -75,23 +74,21 @@ func (r *AlunoRepository) ListarAlunos(ctx context.Context)([]*model.Aluno, erro
 	return alunos, nil
 }
 
-func (r *AlunoRepository) AtualizarAluno(ctx context.Context, id string, aluno model.Aluno)error{
+func (r *AlunoRepository) AtualizarAluno(ctx context.Context, id string, aluno model.Aluno) error {
 	_, err := r.Client.Collection("Alunos").Doc(id).Set(ctx, map[string]interface{}{
-		"nome": aluno.Nome,
+		"nome":  aluno.Nome,
 		"email": aluno.Email,
 	})
 	if err != nil {
-		log.Printf("erro ao atualizar o aluno com ID '%s': %v", id, err)
-		return err
+		return fmt.Errorf("erro ao atualizar o aluno com ID '%s': %v", id, err)
 	}
 	return nil
 }
 
-func(r *AlunoRepository) DeletarAluno(ctx context.Context, id string) error {
+func (r *AlunoRepository) DeletarAluno(ctx context.Context, id string) error {
 	_, err := r.Client.Collection("Alunos").Doc(id).Delete(ctx)
 	if err != nil {
-		log.Printf("erro ao deletar aluno com ID '%s': %v")
-		return err
+		return fmt.Errorf("erro ao deletar aluno com ID '%s': %v")
 	}
 	return nil
 }

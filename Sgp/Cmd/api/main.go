@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	//"fmt"
+	
 	"log"
 	//"net/http"
 	//"sgp/Internal/repository"
+
 	firebase "firebase.google.com/go/v4"
+
 	//"github.com/gorilla/mux"
 	"google.golang.org/api/option"
 )
@@ -71,7 +74,6 @@ func main() {
 	*/
 	//-------------------------------------------------------//
 
-
 	//--------------TestPsico----------------------//
 	//psicologoRepo := repository.NewPsicologoRepository(client)
 	//freudiano := &model.Psicologo{Nome: "Valdemir", Email: "valdinhoo@gmail.com", CRP: "2111312"}
@@ -85,8 +87,8 @@ func main() {
 	//psicos, err := psicologoRepo.ListarPsicologos(ctx)
 
 	//psicologoRepo.DeletarPsicologo(ctx,"9bCrnEXS1DSM1YQk8DoB")
+
+	//psicoId, err := psicologoRepo.GetPsicologoIDPorNome(ctx, "Freudinho")
 	//----------------tudo funcionando---------------------//
-
-
 
 }

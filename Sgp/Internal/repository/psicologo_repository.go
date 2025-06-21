@@ -2,10 +2,11 @@ package repository
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"sgp/Internal/model"
-	"google.golang.org/api/iterator"
+
 	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
 )
 
 type PsicologoRepository struct {
@@ -13,20 +14,20 @@ type PsicologoRepository struct {
 }
 
 func NewPsicologoRepository(client *firestore.Client) *PsicologoRepository {
-	return &PsicologoRepository{ Client: client }
+	return &PsicologoRepository{Client: client}
 }
 
 func (r *PsicologoRepository) CriarPsicologo(
-	ctx context.Context, psicologo model.Psicologo)(*model.Psicologo, error) {
+	ctx context.Context, psicologo model.Psicologo) (*model.Psicologo, error) {
 
 	docRef, _, err := r.Client.Collection("Psicologos").
-		Add(ctx, map[string] interface{}{
-			"nome": psicologo.Nome,
+		Add(ctx, map[string]interface{}{
+			"nome":  psicologo.Nome,
 			"email": psicologo.Email,
-			"crp": psicologo.CRP,
-		});
+			"crp":   psicologo.CRP,
+		})
 
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
@@ -35,22 +36,22 @@ func (r *PsicologoRepository) CriarPsicologo(
 	return &psicologo, nil
 }
 
-func(r *PsicologoRepository) BuscarPsicologoPorID(ctx context.Context, id string)(*model.Psicologo,error ){
+func (r *PsicologoRepository) BuscarPsicologoPorID(ctx context.Context, id string) (*model.Psicologo, error) {
 	doc, err := r.Client.Collection("Psicologos").Doc(id).Get(ctx)
 
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	var Psicologo model.Psicologo
 
-	if err := doc.DataTo(&Psicologo); err != nil{
+	if err := doc.DataTo(&Psicologo); err != nil {
 		return nil, err
-	} 
+	}
 	Psicologo.ID = doc.Ref.ID
 	return &Psicologo, nil
 }
 
-func (r *PsicologoRepository) ListarPsicologos(ctx context.Context)([]*model.Psicologo, error){
+func (r *PsicologoRepository) ListarPsicologos(ctx context.Context) ([]*model.Psicologo, error) {
 	var Psicologos []*model.Psicologo
 
 	iter := r.Client.Collection("Psicologos").Documents(ctx)
@@ -62,17 +63,16 @@ func (r *PsicologoRepository) ListarPsicologos(ctx context.Context)([]*model.Psi
 			break
 		}
 		if err != nil {
-			log.Printf("erro ao iterar sobre psicologos: %v", err)	
-
-			return nil, err		
+			fmt.Printf("erro ao iterar sobre psicologos: %v", err)
+			return nil, err
 		}
 
 		var Psicologo model.Psicologo
 
 		if err := doc.DataTo(&Psicologo); err != nil {
-			log.Printf("erro ao converter dados do doc '%s': %v", 
-				doc.Ref.ID, err)	
-			
+			fmt.Printf("erro ao converter dados do doc '%s': %v",
+				doc.Ref.ID, err)
+
 			continue
 		}
 
@@ -88,28 +88,43 @@ func (r *PsicologoRepository) AtualizarPsicologo(
 
 	_, err := r.Client.Collection("Psicologos").
 		Doc(id).
-		Set(ctx, map[string] interface{} {
-			"nome": Psicologo.Nome,
+		Set(ctx, map[string]interface{}{
+			"nome":  Psicologo.Nome,
 			"email": Psicologo.Email,
-			"crp": Psicologo.CRP,
+			"crp":   Psicologo.CRP,
 		})
 
 	if err != nil {
-		log.Printf("erro ao atualizar o psicologo com ID '%s': %v", id, err)
-		return err
+		return fmt.Errorf("erro ao atualizar o psicologo com ID '%s': %v", id, err)
 	}
 	return nil
 }
 
-func(r *PsicologoRepository) DeletarPsicologo(
+func (r *PsicologoRepository) DeletarPsicologo(
 	ctx context.Context, id string) error {
 
 	_, err := r.Client.Collection("Psicologos").Doc(id).Delete(ctx)
 
 	if err != nil {
-		log.Printf("erro ao deletar psicologo com ID '%s': %v")
-		return err
+		return fmt.Errorf("erro ao deletar psicologo com ID '%s': %v")
 	}
 
 	return nil
+}
+
+func (r *PsicologoRepository) GetPsicologoIDPorNome(ctx context.Context, nome string) (string, error) {
+	query := r.Client.Collection("Psicologos").Where("nome", "==", nome).Limit(1)
+
+	iter := query.Documents(ctx)
+	defer iter.Stop()
+
+	doc, err := iter.Next()
+	if err == iterator.Done {
+		return "", fmt.Errorf("Psicologo com o nome '%s' não encontrado", nome)
+	}
+	if err != nil {
+		return "", fmt.Errorf("erro ao buscar psicologo por nome: %w", err)
+	}
+
+	return doc.Ref.ID, nil
 }
