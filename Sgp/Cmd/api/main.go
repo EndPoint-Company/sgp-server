@@ -2,16 +2,18 @@ package main
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/joho/godotenv"
-	//"fmt"
+
 	//"time"
 
 	"log"
 	"os"
+
 	//"net/http"
 	//"sgp/Internal/model"
-	//"sgp/Internal/model"
-	//"sgp/Internal/repository"
+	"sgp/Internal/repository"
 
 	firebase "firebase.google.com/go/v4"
 
@@ -20,7 +22,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatalf("Erro ao carregar o arquivo .env: %v", err)
 	}
@@ -43,7 +45,7 @@ func main() {
 	//-------------------------------------------------------//
 
 	//--------------TestAluno----------------------//
-	//alunoRepo := repository.NewAlunoRepository(client)
+	alunoRepo := repository.NewAlunoRepository(client)
 	//marquin := &model.Aluno{Nome: "Marcolas2", Email: "marcoladopcc@gmail.com"}
 	//miguel := &model.Aluno{Nome: "Manguel", Email: "mangas@gmail.com"}
 	//larinha := &model.Aluno{Nome: "Lorax", Email: "Lorax@gmail.com"}
@@ -81,13 +83,10 @@ func main() {
 	alunoRepo.AtualizarAluno(ctx,"2QZfL6ICZwO6UUMBN14I",*marcos)
 	*/
 
-	/*			funcionando
 	alunodId, err := alunoRepo.GetAlunoIDPorNome(ctx, "Marcos")
 	fmt.Print(alunodId)
-	*/
+
 	//-------------------------------------------------------//
-
-
 
 	//--------------TestPsico----------------------//
 	//psicologoRepo := repository.NewPsicologoRepository(client)
@@ -105,8 +104,6 @@ func main() {
 
 	//psicoId, err := psicologoRepo.GetPsicologoIDPorNome(ctx, "Freudinho")
 	//----------------tudo funcionando---------------------//
-
-
 
 	//--------------TestConsultas----------------------//
 	//ConsultaRepo := repository.NewConsultaRepository(client)

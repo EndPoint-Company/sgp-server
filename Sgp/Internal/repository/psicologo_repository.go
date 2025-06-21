@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sgp/Internal/model"
-
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 )
@@ -120,7 +119,7 @@ func (r *PsicologoRepository) GetPsicologoIDPorNome(ctx context.Context, nome st
 
 	doc, err := iter.Next()
 	if err == iterator.Done {
-		return "", fmt.Errorf("Psicologo com o nome '%s' não encontrado", nome)
+		return "", fmt.Errorf("psicologo com o nome '%s' não encontrado", nome)
 	}
 	if err != nil {
 		return "", fmt.Errorf("erro ao buscar psicologo por nome: %w", err)
