@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	//"fmt"
-	
+	//"time"
+
 	"log"
 	//"net/http"
+	//"sgp/Internal/model"
+	//"sgp/Internal/model"
 	//"sgp/Internal/repository"
 
 	firebase "firebase.google.com/go/v4"
@@ -74,6 +77,8 @@ func main() {
 	*/
 	//-------------------------------------------------------//
 
+
+
 	//--------------TestPsico----------------------//
 	//psicologoRepo := repository.NewPsicologoRepository(client)
 	//freudiano := &model.Psicologo{Nome: "Valdemir", Email: "valdinhoo@gmail.com", CRP: "2111312"}
@@ -91,4 +96,17 @@ func main() {
 	//psicoId, err := psicologoRepo.GetPsicologoIDPorNome(ctx, "Freudinho")
 	//----------------tudo funcionando---------------------//
 
+
+
+	//--------------TestConsultas----------------------//
+	//ConsultaRepo := repository.NewConsultaRepository(client)
+	//Consulta01 := model.Consulta{AlunoID: "2QZfL6ICZwO6UUMBN14I", PsicologoID: "CRsiWje2vKiLsr5fCpxW", Horario: time.Now(), Status: "" }
+	//Consulta02 := model.Consulta{AlunoID: "2QZfL6ICZwO6UUMBN14I", PsicologoID: "CRsiWje2vKiLsr5fCpxW", Horario: time.Now(), Status: "" }
+	//Consulta03 := model.Consulta{AlunoID: "mu3Mo6I0eSSD3aWZdYte", PsicologoID: "CRsiWje2vKiLsr5fCpxW", Horario: time.Now(), Status: "" }
+	//ConsultaRepo.AgendarConsulta(ctx, Consulta02)
+	//ConsultaRepo.AgendarConsulta(ctx, Consulta03)
+	//ConsultaRepo.AtualizaStatusConsulta(ctx,"xxOX58BhUZRSoNkAJ4dV", "aguardando aprovation" )
+	//consultasP, err := ConsultaRepo.ListarConsultasPorPsicologo(ctx, "CRsiWje2vKiLsr5fCpxW", "aguardando aprovacao")
+	//consultasA, err := ConsultaRepo.ListarConsultasPorAluno(ctx, "2QZfL6ICZwO6UUMBN14I")
+	//----------------tudo funcionando---------------------//
 }

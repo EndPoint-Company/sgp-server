@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sgp/Internal/model"
+
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 )
@@ -21,7 +22,7 @@ func (r *ConsultaRepository) AgendarConsulta(ctx context.Context, consulta model
 		"alunoId":     consulta.AlunoID,
 		"psicologoId": consulta.PsicologoID,
 		"horario":     consulta.Horario,
-		"status":      consulta.Status,
+		"status":      "aguardando aprovacao",
 	})
 
 	if err != nil {
@@ -45,7 +46,7 @@ func (r *ConsultaRepository) AtualizaStatusConsulta(ctx context.Context, id stri
 
 func (r *ConsultaRepository) ListarConsultasPorPsicologo(ctx context.Context, psicologoID string, statusFiltro string) ([]*model.Consulta, error) {
 	var consultas []*model.Consulta
-	
+
 	query := r.Client.Collection("Consultas").Where("psicologoId", "==", psicologoID)
 	if statusFiltro != "" {
 		query = query.Where("status", "==", statusFiltro)
@@ -83,7 +84,7 @@ func (r *ConsultaRepository) ListarConsultasPorAluno(ctx context.Context, alunoI
 		if err == iterator.Done {
 			break
 		}
-		if err != nil {	
+		if err != nil {
 			return nil, fmt.Errorf("erro ao iterar sobre consultas do aluno '%s': %v", alunoID, err)
 		}
 
@@ -100,12 +101,10 @@ func (r *ConsultaRepository) ListarConsultasPorAluno(ctx context.Context, alunoI
 	return consultas, nil
 }
 
-func (r * ConsultaRepository) DeletarConsulta(ctx context.Context, id string)error{
-	_,err := r.Client.Collection("Consultas").Doc(id).Delete(ctx)
-	if err != nil{
+func (r *ConsultaRepository) DeletarConsulta(ctx context.Context, id string) error {
+	_, err := r.Client.Collection("Consultas").Doc(id).Delete(ctx)
+	if err != nil {
 		return fmt.Errorf("erro ao deletar consulta com ID '%s': %v", id, err)
 	}
 	return nil
 }
-
-
