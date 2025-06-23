@@ -105,7 +105,7 @@ func (r *PsicologoRepository) DeletarPsicologo(
 	_, err := r.Client.Collection("Psicologos").Doc(id).Delete(ctx)
 
 	if err != nil {
-		return fmt.Errorf("erro ao deletar psicologo com ID '%s': %v")
+		//return fmt.Errorf("erro ao deletar psicologo com ID '%s': %v")
 	}
 
 	return nil
