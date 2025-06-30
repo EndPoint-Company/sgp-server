@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-const TimeoutTime = 5 * time.Second
+const TimeoutPsicologo = 5 * time.Second
 
 type PsicologoHandler struct {
 	Repo repository.PsicologoRepository
@@ -47,7 +47,7 @@ func (h *PsicologoHandler) HandlerCriarPsicologo(
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), TimeoutTime)
+	ctx, cancel := context.WithTimeout(r.Context(), TimeoutPsicologo)
 	defer cancel()
 
 	createdPsicologo, err := h.Repo.CriarPsicologo(ctx, psicologo)
@@ -66,7 +66,7 @@ func (h *PsicologoHandler) HandlerCriarPsicologo(
 func (h *PsicologoHandler) HandlerListarPsicologos(
 	w http.ResponseWriter, r *http.Request,
 ) {
-	ctx, cancel := context.WithTimeout(r.Context(), TimeoutTime)
+	ctx, cancel := context.WithTimeout(r.Context(), TimeoutPsicologo)
 	defer cancel()
 
 	psicologos, err := h.Repo.ListarPsicologos(ctx)
@@ -89,7 +89,7 @@ func (h *PsicologoHandler) HandlerBuscarPsicologoPorID(
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), TimeoutTime)
+	ctx, cancel := context.WithTimeout(r.Context(), TimeoutPsicologo)
 	defer cancel()
 
 	psicologo, err := h.Repo.BuscarPsicologoPorID(ctx, id)
@@ -123,7 +123,7 @@ func (h *PsicologoHandler) HandlerAtualizarPsicologo(
 	}
 	defer r.Body.Close()
 
-	ctx, cancel := context.WithTimeout(r.Context(), TimeoutTime)
+	ctx, cancel := context.WithTimeout(r.Context(), TimeoutPsicologo)
 	defer cancel()
 
 	if err := h.Repo.AtualizarPsicologo(ctx, id, psicologo); err != nil {
@@ -150,7 +150,7 @@ func (h *PsicologoHandler) HandlerDeletarPsicologo(w http.ResponseWriter, r *htt
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), TimeoutTime)
+	ctx, cancel := context.WithTimeout(r.Context(), TimeoutPsicologo)
 	defer cancel()
 
 	if err := h.Repo.DeletarPsicologo(ctx, id); err != nil {
@@ -172,7 +172,7 @@ func (h *PsicologoHandler) HandlerBuscarPsicologoPorNome(w http.ResponseWriter, 
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), TimeoutTime)
+	ctx, cancel := context.WithTimeout(r.Context(), TimeoutPsicologo)
 	defer cancel()
 
 	id, err := h.Repo.GetPsicologoIDPorNome(ctx, nome)
