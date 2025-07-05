@@ -9,10 +9,11 @@ import (
 	//"time"
 
 	"log"
+	"net/http"
 	"os"
 
-	//"net/http"
 	//"sgp/Internal/model"
+	"sgp/Internal/handler"
 	"sgp/Internal/repository"
 
 	firebase "firebase.google.com/go/v4"
@@ -22,7 +23,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load(".env")
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Erro ao carregar o arquivo .env: %v", err)
 	}
@@ -45,7 +46,7 @@ func main() {
 	//-------------------------------------------------------//
 
 	//--------------TestAluno----------------------//
-	alunoRepo := repository.NewAlunoRepository(client)
+	//alunoRepo := repository.NewAlunoRepository(client)
 	//marquin := &model.Aluno{Nome: "Marcolas2", Email: "marcoladopcc@gmail.com"}
 	//miguel := &model.Aluno{Nome: "Manguel", Email: "mangas@gmail.com"}
 	//larinha := &model.Aluno{Nome: "Lorax", Email: "Lorax@gmail.com"}
@@ -83,8 +84,8 @@ func main() {
 	alunoRepo.AtualizarAluno(ctx,"2QZfL6ICZwO6UUMBN14I",*marcos)
 	*/
 
-	alunodId, err := alunoRepo.GetAlunoIDPorNome(ctx, "Marcos")
-	fmt.Print(alunodId)
+	//alunodId, err := alunoRepo.GetAlunoIDPorNome(ctx, "Marcos")
+	//fmt.Print(alunodId)
 
 	//-------------------------------------------------------//
 
@@ -116,4 +117,19 @@ func main() {
 	//consultasP, err := ConsultaRepo.ListarConsultasPorPsicologo(ctx, "CRsiWje2vKiLsr5fCpxW", "aguardando aprovacao")
 	//consultasA, err := ConsultaRepo.ListarConsultasPorAluno(ctx, "2QZfL6ICZwO6UUMBN14I")
 	//----------------tudo funcionando---------------------//
+
+	consultaRepo := repository.NewConsultaRepository(client)
+	consultaHandler := handler.NewConsultaHandler(*consultaRepo)
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("POST /consultas", consultaHandler.HandlerAgendarConsulta) //funcionando
+	mux.HandleFunc("GET /consultas/psicologo", consultaHandler.HandlerListarConsultasPorPsicologo) //funcionando
+	mux.HandleFunc("PATCH /consultas/{id}/status", consultaHandler.HandlerAtualizarStatusConsulta) //funcionando
+	mux.HandleFunc("DELETE /consultas/{id}", consultaHandler.HandlerDeletarConsulta)               //funcionando
+
+	port := ":8080"
+	fmt.Printf("ovino na porta %s\n", port)
+	log.Fatal(http.ListenAndServe(port, mux))
+
 }
