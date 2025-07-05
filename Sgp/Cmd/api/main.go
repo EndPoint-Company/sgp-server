@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/joho/godotenv"
 
@@ -118,18 +119,44 @@ func main() {
 	//consultasA, err := ConsultaRepo.ListarConsultasPorAluno(ctx, "2QZfL6ICZwO6UUMBN14I")
 	//----------------tudo funcionando---------------------//
 
+	alunoRepo := repository.NewAlunoRepository(client)
+	psicologoRepo := repository.NewPsicologoRepository(client)
 	consultaRepo := repository.NewConsultaRepository(client)
+
+	alunoHandler := handler.NewAlunoHandler(*alunoRepo)
+	psicologoHandler := handler.NewPsicologoHandler(*psicologoRepo)
 	consultaHandler := handler.NewConsultaHandler(*consultaRepo)
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /consultas", consultaHandler.HandlerAgendarConsulta) //funcionando
-	mux.HandleFunc("GET /consultas/psicologo", consultaHandler.HandlerListarConsultasPorPsicologo) //funcionando
-	mux.HandleFunc("PATCH /consultas/{id}/status", consultaHandler.HandlerAtualizarStatusConsulta) //funcionando
-	mux.HandleFunc("DELETE /consultas/{id}", consultaHandler.HandlerDeletarConsulta)               //funcionando
+	mux.HandleFunc("POST /alunos", alunoHandler.HandlerCriarAluno)
+	mux.HandleFunc("GET /alunos", alunoHandler.HandlerListarAlunos)
+	mux.HandleFunc("GET /alunos/{id}", alunoHandler.HandlerBuscarAlunoPorID)
+    mux.HandleFunc("GET /alunos/nome", alunoHandler.HandlerBuscarAlunoPorNome)
+	mux.HandleFunc("PUT /alunos/{id}", alunoHandler.HandlerAtualizarAluno)
+	mux.HandleFunc("DELETE /alunos/{id}", alunoHandler.HandlerDeletarAluno)
+
+	mux.HandleFunc("POST /psicologos", psicologoHandler.HandlerCriarPsicologo)
+	mux.HandleFunc("GET /psicologos", psicologoHandler.HandlerListarPsicologos)
+    mux.HandleFunc("GET /psicologos/{id}", psicologoHandler.HandlerBuscarPsicologoPorID)
+    mux.HandleFunc("GET /psicologos/nome", psicologoHandler.HandlerBuscarPsicologoPorNome)
+	mux.HandleFunc("PUT /psicologos/{id}", psicologoHandler.HandlerAtualizarPsicologo)
+	mux.HandleFunc("DELETE /psicologos/{id}", psicologoHandler.HandlerDeletarPsicologo)
+
+	mux.HandleFunc("POST /consultas", consultaHandler.HandlerAgendarConsulta)
+	mux.HandleFunc("GET /consultas/psicologo", consultaHandler.HandlerListarConsultasPorPsicologo)
+	mux.HandleFunc("PATCH /consultas/{id}/status", consultaHandler.HandlerAtualizarStatusConsulta)
+	mux.HandleFunc("DELETE /consultas/{id}", consultaHandler.HandlerDeletarConsulta)
 
 	port := ":8080"
-	fmt.Printf("ovino na porta %s\n", port)
-	log.Fatal(http.ListenAndServe(port, mux))
+	server := &http.Server{
+		Addr:         port,
+		Handler:      mux,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
 
+	fmt.Printf("🐄 bovino na porta %s\n", port)
+	log.Fatal(server.ListenAndServe())
 }
