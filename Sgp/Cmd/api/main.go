@@ -16,12 +16,16 @@ import (
 	//"sgp/Internal/model"
 	"sgp/Internal/handler"
 	"sgp/Internal/repository"
+	"sgp/Internal/middleware"
 
 	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/auth"
 
 	//"github.com/gorilla/mux"
 	"google.golang.org/api/option"
 )
+
+const is_middleware_on = false;
 
 func main() {
 	err := godotenv.Load()
@@ -39,6 +43,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("erro ao inicializar firebase: %v", err)
 	}
+	
+	var authClient *auth.Client
+	authClient, err = app.Auth(ctx)
+	if err != nil {
+		log.Fatalf("erro ao inicializar cliente de autenticação: %v", err)
+	}
+
 	client, err := app.Firestore(ctx)
 	if err != nil {
 		log.Fatalf("erro ao conectar ao firestore: %v", err)
@@ -129,24 +140,47 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /alunos", alunoHandler.HandlerCriarAluno)
-	mux.HandleFunc("GET /alunos", alunoHandler.HandlerListarAlunos)
-	mux.HandleFunc("GET /alunos/{id}", alunoHandler.HandlerBuscarAlunoPorID)
-    mux.HandleFunc("GET /alunos/nome", alunoHandler.HandlerBuscarAlunoPorNome)
-	mux.HandleFunc("PUT /alunos/{id}", alunoHandler.HandlerAtualizarAluno)
-	mux.HandleFunc("DELETE /alunos/{id}", alunoHandler.HandlerDeletarAluno)
+	authMiddleware := middleware.NewAuthMiddleware(authClient)
 
-	mux.HandleFunc("POST /psicologos", psicologoHandler.HandlerCriarPsicologo)
-	mux.HandleFunc("GET /psicologos", psicologoHandler.HandlerListarPsicologos)
-    mux.HandleFunc("GET /psicologos/{id}", psicologoHandler.HandlerBuscarPsicologoPorID)
-    mux.HandleFunc("GET /psicologos/nome", psicologoHandler.HandlerBuscarPsicologoPorNome)
-	mux.HandleFunc("PUT /psicologos/{id}", psicologoHandler.HandlerAtualizarPsicologo)
-	mux.HandleFunc("DELETE /psicologos/{id}", psicologoHandler.HandlerDeletarPsicologo)
+	if is_middleware_on {
+		mux.Handle("POST /alunos", authMiddleware.Verify(http.HandlerFunc(alunoHandler.HandlerCriarAluno)))
+		mux.Handle("GET /alunos", authMiddleware.Verify(http.HandlerFunc(alunoHandler.HandlerListarAlunos)))
+		mux.Handle("GET /alunos/{id}", authMiddleware.Verify(http.HandlerFunc(alunoHandler.HandlerBuscarAlunoPorID)))
+		mux.Handle("GET /alunos/nome", authMiddleware.Verify(http.HandlerFunc(alunoHandler.HandlerBuscarAlunoPorNome)))
+		mux.Handle("PUT /alunos/{id}", authMiddleware.Verify(http.HandlerFunc(alunoHandler.HandlerAtualizarAluno)))
+		mux.Handle("DELETE /alunos/{id}", authMiddleware.Verify(http.HandlerFunc(alunoHandler.HandlerDeletarAluno)))
 
-	mux.HandleFunc("POST /consultas", consultaHandler.HandlerAgendarConsulta)
-	mux.HandleFunc("GET /consultas/psicologo", consultaHandler.HandlerListarConsultasPorPsicologo)
-	mux.HandleFunc("PATCH /consultas/{id}/status", consultaHandler.HandlerAtualizarStatusConsulta)
-	mux.HandleFunc("DELETE /consultas/{id}", consultaHandler.HandlerDeletarConsulta)
+		mux.Handle("POST /psicologos", authMiddleware.Verify(http.HandlerFunc(psicologoHandler.HandlerCriarPsicologo)))
+		mux.Handle("GET /psicologos", authMiddleware.Verify(http.HandlerFunc(psicologoHandler.HandlerListarPsicologos)))
+		mux.Handle("GET /psicologos/{id}", authMiddleware.Verify(http.HandlerFunc(psicologoHandler.HandlerBuscarPsicologoPorID)))
+		mux.Handle("GET /psicologos/nome", authMiddleware.Verify(http.HandlerFunc(psicologoHandler.HandlerBuscarPsicologoPorNome)))
+		mux.Handle("PUT /psicologos/{id}", authMiddleware.Verify(http.HandlerFunc(psicologoHandler.HandlerAtualizarPsicologo)))
+		mux.Handle("DELETE /psicologos/{id}", authMiddleware.Verify(http.HandlerFunc(psicologoHandler.HandlerDeletarPsicologo)))
+
+		mux.Handle("POST /consultas", authMiddleware.Verify(http.HandlerFunc(consultaHandler.HandlerAgendarConsulta)))
+		mux.Handle("GET /consultas/psicologo", authMiddleware.Verify(http.HandlerFunc(consultaHandler.HandlerListarConsultasPorPsicologo)))
+		mux.Handle("PATCH /consultas/{id}/status", authMiddleware.Verify(http.HandlerFunc(consultaHandler.HandlerAtualizarStatusConsulta)))
+		mux.Handle("DELETE /consultas/{id}", authMiddleware.Verify(http.HandlerFunc(consultaHandler.HandlerDeletarConsulta)))
+	} else {
+		mux.HandleFunc("POST /alunos", alunoHandler.HandlerCriarAluno)
+		mux.HandleFunc("GET /alunos", alunoHandler.HandlerListarAlunos)
+		mux.HandleFunc("GET /alunos/{id}", alunoHandler.HandlerBuscarAlunoPorID)
+		mux.HandleFunc("GET /alunos/nome", alunoHandler.HandlerBuscarAlunoPorNome)
+		mux.HandleFunc("PUT /alunos/{id}", alunoHandler.HandlerAtualizarAluno)
+		mux.HandleFunc("DELETE /alunos/{id}", alunoHandler.HandlerDeletarAluno)
+
+		mux.HandleFunc("POST /psicologos", psicologoHandler.HandlerCriarPsicologo)
+		mux.HandleFunc("GET /psicologos", psicologoHandler.HandlerListarPsicologos)
+		mux.HandleFunc("GET /psicologos/{id}", psicologoHandler.HandlerBuscarPsicologoPorID)
+		mux.HandleFunc("GET /psicologos/nome", psicologoHandler.HandlerBuscarPsicologoPorNome)
+		mux.HandleFunc("PUT /psicologos/{id}", psicologoHandler.HandlerAtualizarPsicologo)
+		mux.HandleFunc("DELETE /psicologos/{id}", psicologoHandler.HandlerDeletarPsicologo)
+
+		mux.HandleFunc("POST /consultas", consultaHandler.HandlerAgendarConsulta)
+		mux.HandleFunc("GET /consultas/psicologo", consultaHandler.HandlerListarConsultasPorPsicologo)
+		mux.HandleFunc("PATCH /consultas/{id}/status", consultaHandler.HandlerAtualizarStatusConsulta)
+		mux.HandleFunc("DELETE /consultas/{id}", consultaHandler.HandlerDeletarConsulta)
+	}
 
 	port := ":8080"
 	server := &http.Server{
