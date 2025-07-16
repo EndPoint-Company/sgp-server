@@ -8,15 +8,15 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-type ConsultaRepository struct {
+type ConsultaRepositoryImpl struct {
 	Client *firestore.Client
 }
 
-func NewConsultaRepository(client *firestore.Client) *ConsultaRepository {
-	return &ConsultaRepository{Client: client}
+func NewConsultaRepository(client *firestore.Client) *ConsultaRepositoryImpl {
+	return &ConsultaRepositoryImpl{Client: client}
 }
 
-func (r *ConsultaRepository) AgendarConsulta(ctx context.Context, consulta model.Consulta) (*model.Consulta, error) {
+func (r *ConsultaRepositoryImpl) AgendarConsulta(ctx context.Context, consulta model.Consulta) (*model.Consulta, error) {
 	docRef, _, err := r.Client.Collection("Consultas").Add(ctx, map[string]interface{}{
 		"alunoId":     consulta.AlunoID,
 		"psicologoId": consulta.PsicologoID,
@@ -33,7 +33,7 @@ func (r *ConsultaRepository) AgendarConsulta(ctx context.Context, consulta model
 	return &consulta, nil
 }
 
-func (r *ConsultaRepository) AtualizaStatusConsulta(ctx context.Context, id string, novoStatus string) error {
+func (r *ConsultaRepositoryImpl) AtualizaStatusConsulta(ctx context.Context, id string, novoStatus string) error {
 	_, err := r.Client.Collection("Consultas").Doc(id).Update(ctx, []firestore.Update{
 		{Path: "status", Value: novoStatus},
 	})
@@ -43,7 +43,7 @@ func (r *ConsultaRepository) AtualizaStatusConsulta(ctx context.Context, id stri
 	return nil
 }
 
-func (r *ConsultaRepository) ListarConsultasPorPsicologo(ctx context.Context, psicologoID string, statusFiltro string) ([]*model.Consulta, error) {
+func (r *ConsultaRepositoryImpl) ListarConsultasPorPsicologo(ctx context.Context, psicologoID string, statusFiltro string) ([]*model.Consulta, error) {
 	var consultas []*model.Consulta
 
 	query := r.Client.Collection("Consultas").Where("psicologoId", "==", psicologoID)
@@ -74,7 +74,7 @@ func (r *ConsultaRepository) ListarConsultasPorPsicologo(ctx context.Context, ps
 	return consultas, nil
 }
 
-func (r *ConsultaRepository) ListarConsultasPorAluno(ctx context.Context, alunoID string) ([]*model.Consulta, error) {
+func (r *ConsultaRepositoryImpl) ListarConsultasPorAluno(ctx context.Context, alunoID string) ([]*model.Consulta, error) {
 	var consultas []*model.Consulta
 
 	iter := r.Client.Collection("Consultas").Where("alunoId", "==", alunoID).Documents(ctx)
@@ -100,7 +100,7 @@ func (r *ConsultaRepository) ListarConsultasPorAluno(ctx context.Context, alunoI
 	return consultas, nil
 }
 
-func (r *ConsultaRepository) DeletarConsulta(ctx context.Context, id string) error {
+func (r *ConsultaRepositoryImpl) DeletarConsulta(ctx context.Context, id string) error {
 	_, err := r.Client.Collection("Consultas").Doc(id).Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("erro ao deletar consulta com ID '%s': %v", id, err)

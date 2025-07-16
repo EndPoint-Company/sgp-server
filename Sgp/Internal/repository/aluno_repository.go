@@ -8,15 +8,16 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-type AlunoRepository struct {
+
+type AlunoRepositoryImpl struct {
 	Client *firestore.Client
 }
 
-func NewAlunoRepository(client *firestore.Client) *AlunoRepository {
-	return &AlunoRepository{Client: client}
+func NewAlunoRepository(client *firestore.Client) *AlunoRepositoryImpl {
+	return &AlunoRepositoryImpl{Client: client}
 }
 
-func (r *AlunoRepository) CriarAluno(ctx context.Context, aluno model.Aluno) (*model.Aluno, error) {
+func (r *AlunoRepositoryImpl) CriarAluno(ctx context.Context, aluno model.Aluno) (*model.Aluno, error) {
 	docRef, _, err := r.Client.Collection("Alunos").Add(ctx, map[string]interface{}{
 		"nome":  aluno.Nome,
 		"email": aluno.Email,
@@ -30,7 +31,7 @@ func (r *AlunoRepository) CriarAluno(ctx context.Context, aluno model.Aluno) (*m
 	return &aluno, nil
 }
 
-func (r *AlunoRepository) BuscarAlunoPorID(ctx context.Context, id string) (*model.Aluno, error) {
+func (r *AlunoRepositoryImpl) BuscarAlunoPorID(ctx context.Context, id string) (*model.Aluno, error) {
 	doc, err := r.Client.Collection("Alunos").Doc(id).Get(ctx)
 
 	if err != nil {
@@ -45,7 +46,7 @@ func (r *AlunoRepository) BuscarAlunoPorID(ctx context.Context, id string) (*mod
 	return &aluno, nil
 }
 
-func (r *AlunoRepository) ListarAlunos(ctx context.Context) ([]*model.Aluno, error) {
+func (r *AlunoRepositoryImpl) ListarAlunos(ctx context.Context) ([]*model.Aluno, error) {
 	var alunos []*model.Aluno
 
 	iter := r.Client.Collection("Alunos").Documents(ctx)
@@ -73,7 +74,7 @@ func (r *AlunoRepository) ListarAlunos(ctx context.Context) ([]*model.Aluno, err
 	return alunos, nil
 }
 
-func (r *AlunoRepository) AtualizarAluno(ctx context.Context, id string, aluno model.Aluno) error {
+func (r *AlunoRepositoryImpl) AtualizarAluno(ctx context.Context, id string, aluno model.Aluno) error {
 	_, err := r.Client.Collection("Alunos").Doc(id).Set(ctx, map[string]interface{}{
 		"nome":  aluno.Nome,
 		"email": aluno.Email,
@@ -84,7 +85,7 @@ func (r *AlunoRepository) AtualizarAluno(ctx context.Context, id string, aluno m
 	return nil
 }
 
-func (r *AlunoRepository) DeletarAluno(ctx context.Context, id string) error {
+func (r *AlunoRepositoryImpl) DeletarAluno(ctx context.Context, id string) error {
 	_, err := r.Client.Collection("Alunos").Doc(id).Delete(ctx)
 	if err != nil {
 		//return fmt.Errorf("erro ao deletar aluno com ID '%s': %v")
@@ -92,7 +93,7 @@ func (r *AlunoRepository) DeletarAluno(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *AlunoRepository) GetAlunoIDPorNome(ctx context.Context, nome string) (string, error) {
+func (r *AlunoRepositoryImpl) GetAlunoIDPorNome(ctx context.Context, nome string) (string, error) {
 	query := r.Client.Collection("Alunos").Where("nome", "==", nome).Limit(1)
 
 	iter := query.Documents(ctx)

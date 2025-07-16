@@ -8,15 +8,15 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-type PsicologoRepository struct {
+type PsicologoRepositoryImpl struct {
 	Client *firestore.Client
 }
 
-func NewPsicologoRepository(client *firestore.Client) *PsicologoRepository {
-	return &PsicologoRepository{Client: client}
+func NewPsicologoRepository(client *firestore.Client) *PsicologoRepositoryImpl {
+	return &PsicologoRepositoryImpl{Client: client}
 }
 
-func (r *PsicologoRepository) CriarPsicologo(
+func (r *PsicologoRepositoryImpl) CriarPsicologo(
 	ctx context.Context, psicologo model.Psicologo) (*model.Psicologo, error) {
 
 	docRef, _, err := r.Client.Collection("Psicologos").
@@ -35,7 +35,7 @@ func (r *PsicologoRepository) CriarPsicologo(
 	return &psicologo, nil
 }
 
-func (r *PsicologoRepository) BuscarPsicologoPorID(ctx context.Context, id string) (*model.Psicologo, error) {
+func (r *PsicologoRepositoryImpl) BuscarPsicologoPorID(ctx context.Context, id string) (*model.Psicologo, error) {
 	doc, err := r.Client.Collection("Psicologos").Doc(id).Get(ctx)
 
 	if err != nil {
@@ -50,7 +50,7 @@ func (r *PsicologoRepository) BuscarPsicologoPorID(ctx context.Context, id strin
 	return &Psicologo, nil
 }
 
-func (r *PsicologoRepository) ListarPsicologos(ctx context.Context) ([]*model.Psicologo, error) {
+func (r *PsicologoRepositoryImpl) ListarPsicologos(ctx context.Context) ([]*model.Psicologo, error) {
 	var Psicologos []*model.Psicologo
 
 	iter := r.Client.Collection("Psicologos").Documents(ctx)
@@ -82,7 +82,7 @@ func (r *PsicologoRepository) ListarPsicologos(ctx context.Context) ([]*model.Ps
 	return Psicologos, nil
 }
 
-func (r *PsicologoRepository) AtualizarPsicologo(
+func (r *PsicologoRepositoryImpl) AtualizarPsicologo(
 	ctx context.Context, id string, Psicologo model.Psicologo) error {
 
 	_, err := r.Client.Collection("Psicologos").
@@ -99,7 +99,7 @@ func (r *PsicologoRepository) AtualizarPsicologo(
 	return nil
 }
 
-func (r *PsicologoRepository) DeletarPsicologo(
+func (r *PsicologoRepositoryImpl) DeletarPsicologo(
 	ctx context.Context, id string) error {
 
 	_, err := r.Client.Collection("Psicologos").Doc(id).Delete(ctx)
@@ -111,7 +111,7 @@ func (r *PsicologoRepository) DeletarPsicologo(
 	return nil
 }
 
-func (r *PsicologoRepository) GetPsicologoIDPorNome(ctx context.Context, nome string) (string, error) {
+func (r *PsicologoRepositoryImpl) GetPsicologoIDPorNome(ctx context.Context, nome string) (string, error) {
 	query := r.Client.Collection("Psicologos").Where("nome", "==", nome).Limit(1)
 
 	iter := query.Documents(ctx)
