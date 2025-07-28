@@ -3,10 +3,12 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"log" // MODIFICADO: Garantir que o pacote de log está sendo usado
 	"net/http"
 	"sgp/Internal/model"
 	"sgp/Internal/repository"
 	"time"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -42,6 +44,8 @@ func (h *AlunoHandler) HandlerCriarAluno(
 
 	createdAluno, err := h.Repo.CriarAluno(ctx, aluno)
 	if err != nil {
+		// MODIFICADO: Adicionado log de erro
+		log.Printf("ERRO ao criar aluno no banco de dados: %v", err)
 		httpError(w, "Erro ao criar aluno no banco de dados",
 			http.StatusInternalServerError)
 		return
@@ -60,6 +64,8 @@ func (h *AlunoHandler) HandlerListarAlunos(
 
 	alunos, err := h.Repo.ListarAlunos(ctx)
 	if err != nil {
+		// MODIFICADO: Adicionado log de erro
+		log.Printf("ERRO ao listar alunos: %v", err)
 		httpError(w, "Erro ao listar alunos", http.StatusInternalServerError)
 		return
 	}
@@ -83,6 +89,8 @@ func (h *AlunoHandler) HandlerBuscarAlunoPorID(
 
 	aluno, err := h.Repo.BuscarAlunoPorID(ctx, id)
 	if err != nil {
+		// MODIFICADO: Adicionado log de erro
+		log.Printf("ERRO ao buscar aluno por ID (%s): %v", id, err)
 		if status.Code(err) == codes.NotFound {
 			httpError(w, "Aluno não encontrado", http.StatusNotFound)
 		} else {
@@ -116,6 +124,8 @@ func (h *AlunoHandler) HandlerAtualizarAluno(
 	defer cancel()
 
 	if err := h.Repo.AtualizarAluno(ctx, id, aluno); err != nil {
+		// MODIFICADO: Adicionado log de erro
+		log.Printf("ERRO ao atualizar aluno por ID (%s): %v", id, err)
 		if status.Code(err) == codes.NotFound {
 			httpError(w, "Não é possível atualizar um aluno que não existe.",
 				http.StatusNotFound)
@@ -145,6 +155,8 @@ func (h *AlunoHandler) HandlerDeletarAluno(
 	defer cancel()
 
 	if err := h.Repo.DeletarAluno(ctx, id); err != nil {
+		// MODIFICADO: Adicionado log de erro
+		log.Printf("ERRO ao deletar aluno por ID (%s): %v", id, err)
 		httpError(w, "Erro ao deletar aluno",
 			http.StatusInternalServerError)
 		return
@@ -168,6 +180,8 @@ func (h *AlunoHandler) HandlerBuscarAlunoPorNome(
 
 	id, err := h.Repo.GetAlunoIDPorNome(ctx, nome)
 	if err != nil {
+		// MODIFICADO: Adicionado log de erro
+		log.Printf("ERRO ao buscar aluno por nome (%s): %v", nome, err)
 		httpError(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -176,3 +190,17 @@ func (h *AlunoHandler) HandlerBuscarAlunoPorNome(
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"id": id})
 }
+
+
+
+
+// A função httpError não foi fornecida, mas estou assumindo que ela existe
+// em algum lugar do seu pacote 'handler' para que o código compile.
+// Exemplo de como ela poderia ser:
+/*
+func httpError(w http.ResponseWriter, message string, code int) {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(code)
+    json.NewEncoder(w).Encode(map[string]string{"error": message})
+}
+*/

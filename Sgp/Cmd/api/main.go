@@ -3,23 +3,25 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
-	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
 	"sgp/Internal/handler"
-	"sgp/Internal/repository"
 	"sgp/Internal/middleware"
+	"sgp/Internal/repository"
+	"time"
+
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
+	"github.com/joho/godotenv"
+	"github.com/rs/cors" // MODIFICADO: Importação do pacote CORS
 	"google.golang.org/api/option"
 )
 
-const is_middleware_on = false;
+const is_middleware_on = false
 
 func main() {
-	err := godotenv.Load()
+	err := godotenv.Load("Cmd/api/.env")
 	if err != nil {
 		log.Fatalf("Erro ao carregar o arquivo .env: %v", err)
 	}
@@ -34,7 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("erro ao inicializar firebase: %v", err)
 	}
-	
+
 	var authClient *auth.Client
 	authClient, err = app.Auth(ctx)
 	if err != nil {
@@ -86,6 +88,8 @@ func main() {
 		mux.HandleFunc("PUT /alunos/{id}", alunoHandler.HandlerAtualizarAluno)
 		mux.HandleFunc("DELETE /alunos/{id}", alunoHandler.HandlerDeletarAluno)
 
+		mux.HandleFunc("GET /consultas/aluno", consultaHandler.HandlerListarConsultasPorAluno)
+
 		mux.HandleFunc("POST /psicologos", psicologoHandler.HandlerCriarPsicologo)
 		mux.HandleFunc("GET /psicologos", psicologoHandler.HandlerListarPsicologos)
 		mux.HandleFunc("GET /psicologos/{id}", psicologoHandler.HandlerBuscarPsicologoPorID)
@@ -99,10 +103,22 @@ func main() {
 		mux.HandleFunc("DELETE /consultas/{id}", consultaHandler.HandlerDeletarConsulta)
 	}
 
+	// MODIFICADO: Início da configuração do CORS
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"}, // Permite requisições do seu cliente React
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+	})
+
+	// Envolve o mux com o handler do CORS
+	handler := c.Handler(mux)
+	// MODIFICADO: Fim da configuração do CORS
+
 	port := ":8080"
 	server := &http.Server{
 		Addr:         port,
-		Handler:      mux,
+		Handler:      handler, // MODIFICADO: Usa o handler com CORS em vez do 'mux' original
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,

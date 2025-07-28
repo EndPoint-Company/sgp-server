@@ -1,3 +1,5 @@
+// ConsultaRepositoryImpl implements the ConsultaRepository interface
+
 package repository
 
 import (
