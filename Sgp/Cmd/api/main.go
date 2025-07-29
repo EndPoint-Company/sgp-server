@@ -85,6 +85,7 @@ func main() {
 
 		mux.HandleFunc("POST /horarios", horarioHandler.HandlerCriarHorario) 
 		mux.HandleFunc("GET /horarios", horarioHandler.HandlerListarHorarios)
+		mux.HandleFunc("DELETE /horarios/{id}", horarioHandler.HandlerDeletarHorario)
 	} else {
 		mux.HandleFunc("POST /alunos", alunoHandler.HandlerCriarAluno)
 		mux.HandleFunc("GET /alunos", alunoHandler.HandlerListarAlunos)
@@ -109,6 +110,7 @@ func main() {
 
 		mux.HandleFunc("POST /horarios", horarioHandler.HandlerCriarHorario) 
 		mux.HandleFunc("GET /horarios", horarioHandler.HandlerListarHorarios)
+		mux.HandleFunc("DELETE /horarios/{id}", horarioHandler.HandlerDeletarHorario)
 	}
 
 	// MODIFICADO: Início da configuração do CORS

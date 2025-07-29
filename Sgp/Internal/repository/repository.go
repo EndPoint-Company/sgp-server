@@ -30,6 +30,7 @@ type HorarioDisponivelRepository interface {
 	ListarHorariosPorPsicologo(ctx context.Context, psicologoID string, status string) ([]*model.HorarioDisponivel, error)
 	BuscarHorarioPorID(ctx context.Context, id string) (*model.HorarioDisponivel, error)
 	AtualizarStatusHorario(ctx context.Context, id string, novoStatus string) error
+	DeletarHorario(ctx context.Context, id string) error
 }
 
 type ConsultaRepository interface {

@@ -73,3 +73,8 @@ func (r *HorarioDisponivelRepositoryImpl) AtualizarStatusHorario(ctx context.Con
 	})
 	return err
 }
+
+func (r *HorarioDisponivelRepositoryImpl) DeletarHorario(ctx context.Context, id string) error {
+	_, err := r.Client.Collection("horariosDisponiveis").Doc(id).Delete(ctx)
+	return err
+}

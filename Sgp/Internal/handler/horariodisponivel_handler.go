@@ -71,3 +71,20 @@ func (h *HorarioDisponivelHandler) HandlerListarHorarios(w http.ResponseWriter, 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(horarios)
 }
+
+func (h *HorarioDisponivelHandler) HandlerDeletarHorario(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		httpError(w, "O ID do horário é obrigatório", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	if err := h.Repo.DeletarHorario(ctx, id); err != nil {
+		httpError(w, "Erro ao deletar horário/bloqueio", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
