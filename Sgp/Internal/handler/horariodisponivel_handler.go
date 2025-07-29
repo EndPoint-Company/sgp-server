@@ -19,6 +19,7 @@ func NewHorarioDisponivelHandler(repo repository.HorarioDisponivelRepository) *H
 
 func (h *HorarioDisponivelHandler) HandlerCriarHorario(w http.ResponseWriter, r *http.Request) {
 	var horario model.HorarioDisponivel
+	
 	if err := json.NewDecoder(r.Body).Decode(&horario); err != nil {
 		httpError(w, "Requisição inválida", http.StatusBadRequest)
 		return
@@ -29,14 +30,17 @@ func (h *HorarioDisponivelHandler) HandlerCriarHorario(w http.ResponseWriter, r 
 		httpError(w, "Campos 'psicologoId', 'inicio' e 'fim' são obrigatórios", http.StatusBadRequest)
 		return
 	}
-	horario.Status = "disponivel" // status inicial
+
+	if horario.Status != "bloqueado" {
+		horario.Status = "disponivel"
+	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
 	novoHorario, err := h.Repo.CriarHorario(ctx, horario)
 	if err != nil {
-		httpError(w, "Erro ao criar horário", http.StatusInternalServerError)
+		httpError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
