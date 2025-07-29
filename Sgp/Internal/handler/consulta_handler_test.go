@@ -13,21 +13,28 @@ import (
 )
 
 func TestHandlerAgendarConsulta(t *testing.T) {
-	consulta := model.Consulta{
-		AlunoID:     "aluno-1",
-		PsicologoID: "psico-1",
-		Horario:     time.Now(),
+	// O payload da requisição agora contém o ID do aluno e o ID do horário disponível.
+	payload := map[string]string{
+		"alunoId":   "aluno-1",
+		"horarioId": "horario-disponivel-1",
 	}
-	consultaJSON, _ := json.Marshal(consulta)
+	payloadJSON, _ := json.Marshal(payload)
 
 	t.Run("sucesso ao agendar", func(t *testing.T) {
-		req, _ := http.NewRequest("POST", "/consultas", bytes.NewBuffer(consultaJSON))
+		req, _ := http.NewRequest("POST", "/consultas", bytes.NewBuffer(payloadJSON))
 		rr := httptest.NewRecorder()
 
 		mockRepo := &mocks.ConsultaRepositoryMock{
+			// A função mockada agora reflete a lógica de transação que ocorreria no repositório real.
 			AgendarConsultaFunc: func(ctx context.Context, c model.Consulta) (*model.Consulta, error) {
+				// O handler irá passar um objeto de consulta com AlunoID e HorarioID.
+				// O repositório real preencheria o resto dos detalhes.
 				c.ID = "consulta-123"
-				c.Status = "aguardando aprovacao"
+				c.PsicologoID = "psico-1" // Simula o dado vindo do horário
+				c.Status = "agendada"
+				c.Inicio = time.Now()
+				c.Fim = time.Now().Add(50 * time.Minute)
+				c.DataAgendamento = time.Now()
 				return &c, nil
 			},
 		}
@@ -41,8 +48,15 @@ func TestHandlerAgendarConsulta(t *testing.T) {
 
 		var novaConsulta model.Consulta
 		json.NewDecoder(rr.Body).Decode(&novaConsulta)
+
 		if novaConsulta.ID != "consulta-123" {
 			t.Errorf("ID da consulta incorreto, esperava 'consulta-123', obteve '%s'", novaConsulta.ID)
+		}
+		if novaConsulta.Status != "agendada" {
+			t.Errorf("Status da consulta incorreto, esperava 'agendada', obteve '%s'", novaConsulta.Status)
+		}
+		if novaConsulta.AlunoID != "aluno-1" {
+			t.Errorf("ID do aluno incorreto, esperava 'aluno-1', obteve '%s'", novaConsulta.AlunoID)
 		}
 	})
 }

@@ -23,30 +23,36 @@ func NewConsultaHandler(repo repository.ConsultaRepository) *ConsultaHandler {
 }
 
 func (h *ConsultaHandler) HandlerAgendarConsulta(w http.ResponseWriter, r *http.Request) {
-	var consulta model.Consulta
+	var payload struct {
+		AlunoID   string `json:"alunoId"`
+		HorarioID string `json:"horarioId"`
+	}
 
-	if err := json.NewDecoder(r.Body).Decode(&consulta); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Requisicao invalida", http.StatusBadRequest)
 		return
 	}
-
 	defer r.Body.Close()
 
-	if consulta.AlunoID == "" || consulta.PsicologoID == "" {
-		http.Error(w, "campos alunoid e psicologoid sao obrigatorios", http.StatusBadRequest)
+	if payload.AlunoID == "" || payload.HorarioID == "" {
+		http.Error(w, "campos alunoId e horarioId sao obrigatorios", http.StatusBadRequest)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), Timeout)
 	defer cancel()
+	
+	// A lógica principal agora está no repositório, dentro de uma transação.
+	consulta := model.Consulta{
+		AlunoID:   payload.AlunoID,
+		HorarioID: payload.HorarioID,
+	}
 
 	novaConsulta, err := h.Repo.AgendarConsulta(ctx, consulta)
-
 	if err != nil {
-        // MODIFICADO: Adicionado log para registrar o erro no terminal
 		log.Printf("ERRO ao agendar consulta: %v", err)
-		http.Error(w, "erro ao agendar consulta no banco de dados", http.StatusInternalServerError)
-        return // MODIFICADO: Adicionado 'return' para parar a execução
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

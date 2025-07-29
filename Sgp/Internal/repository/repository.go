@@ -25,6 +25,13 @@ type PsicologoRepository interface {
 	GetPsicologoIDPorNome(ctx context.Context, nome string) (string, error)
 }
 
+type HorarioDisponivelRepository interface {
+	CriarHorario(ctx context.Context, horario model.HorarioDisponivel) (*model.HorarioDisponivel, error)
+	ListarHorariosPorPsicologo(ctx context.Context, psicologoID string, status string) ([]*model.HorarioDisponivel, error)
+	BuscarHorarioPorID(ctx context.Context, id string) (*model.HorarioDisponivel, error)
+	AtualizarStatusHorario(ctx context.Context, id string, novoStatus string) error
+}
+
 type ConsultaRepository interface {
 	AgendarConsulta(ctx context.Context, consulta model.Consulta) (*model.Consulta, error)
 	AtualizaStatusConsulta(ctx context.Context, id string, novoStatus string) error

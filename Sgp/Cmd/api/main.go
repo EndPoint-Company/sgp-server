@@ -21,7 +21,7 @@ import (
 const is_middleware_on = false
 
 func main() {
-	err := godotenv.Load("Cmd/api/.env")
+	err := godotenv.Load("/home/marco/sgp-server/Sgp/Cmd/api/.env")
 	if err != nil {
 		log.Fatalf("Erro ao carregar o arquivo .env: %v", err)
 	}
@@ -52,10 +52,12 @@ func main() {
 	alunoRepo := repository.NewAlunoRepository(client)
 	psicologoRepo := repository.NewPsicologoRepository(client)
 	consultaRepo := repository.NewConsultaRepository(client)
+	horarioRepo := repository.NewHorarioDisponivelRepository(client)
 
 	alunoHandler := handler.NewAlunoHandler(alunoRepo)
 	psicologoHandler := handler.NewPsicologoHandler(psicologoRepo)
 	consultaHandler := handler.NewConsultaHandler(consultaRepo)
+	horarioHandler := handler.NewHorarioDisponivelHandler(horarioRepo)
 
 	mux := http.NewServeMux()
 
@@ -76,10 +78,13 @@ func main() {
 		mux.Handle("PUT /psicologos/{id}", authMiddleware.Verify(http.HandlerFunc(psicologoHandler.HandlerAtualizarPsicologo)))
 		mux.Handle("DELETE /psicologos/{id}", authMiddleware.Verify(http.HandlerFunc(psicologoHandler.HandlerDeletarPsicologo)))
 
-		mux.Handle("POST /consultas", authMiddleware.Verify(http.HandlerFunc(consultaHandler.HandlerAgendarConsulta)))
+		mux.HandleFunc("POST /consultas", consultaHandler.HandlerAgendarConsulta)
 		mux.Handle("GET /consultas/psicologo", authMiddleware.Verify(http.HandlerFunc(consultaHandler.HandlerListarConsultasPorPsicologo)))
 		mux.Handle("PATCH /consultas/{id}/status", authMiddleware.Verify(http.HandlerFunc(consultaHandler.HandlerAtualizarStatusConsulta)))
 		mux.Handle("DELETE /consultas/{id}", authMiddleware.Verify(http.HandlerFunc(consultaHandler.HandlerDeletarConsulta)))
+
+		mux.HandleFunc("POST /horarios", horarioHandler.HandlerCriarHorario) 
+		mux.HandleFunc("GET /horarios", horarioHandler.HandlerListarHorarios)
 	} else {
 		mux.HandleFunc("POST /alunos", alunoHandler.HandlerCriarAluno)
 		mux.HandleFunc("GET /alunos", alunoHandler.HandlerListarAlunos)
@@ -101,6 +106,9 @@ func main() {
 		mux.HandleFunc("GET /consultas/psicologo", consultaHandler.HandlerListarConsultasPorPsicologo)
 		mux.HandleFunc("PATCH /consultas/{id}/status", consultaHandler.HandlerAtualizarStatusConsulta)
 		mux.HandleFunc("DELETE /consultas/{id}", consultaHandler.HandlerDeletarConsulta)
+
+		mux.HandleFunc("POST /horarios", horarioHandler.HandlerCriarHorario) 
+		mux.HandleFunc("GET /horarios", horarioHandler.HandlerListarHorarios)
 	}
 
 	// MODIFICADO: Início da configuração do CORS

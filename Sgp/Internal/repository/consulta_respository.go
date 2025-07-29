@@ -5,6 +5,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 	"sgp/Internal/model"
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
@@ -19,24 +20,73 @@ func NewConsultaRepository(client *firestore.Client) *ConsultaRepositoryImpl {
 }
 
 func (r *ConsultaRepositoryImpl) AgendarConsulta(ctx context.Context, consulta model.Consulta) (*model.Consulta, error) {
-	docRef, _, err := r.Client.Collection("Consultas").Add(ctx, map[string]interface{}{
-		"alunoId":     consulta.AlunoID,
-		"psicologoId": consulta.PsicologoID,
-		"horario":     consulta.Horario,
-		"status":      "aguardando aprovacao",
+	err := r.Client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		horarioRef := r.Client.Collection("horariosDisponiveis").Doc(consulta.HorarioID)
+		horarioDoc, err := tx.Get(horarioRef)
+		if err != nil {
+			return fmt.Errorf("erro ao buscar horário para agendamento: %w", err)
+		}
+
+		var horario model.HorarioDisponivel
+		horarioDoc.DataTo(&horario)
+		if horario.Status != "disponivel" {
+			return fmt.Errorf("o horário selecionado não está mais disponível")
+		}
+
+		// O horário fica "agendado" para que não possa ser pego por outro aluno
+		if err := tx.Update(horarioRef, []firestore.Update{{Path: "status", Value: "agendado"}}); err != nil {
+			return err
+		}
+
+		// Preenche os dados da consulta com o status pendente
+		consulta.Inicio = horario.Inicio
+		consulta.Fim = horario.Fim
+		consulta.PsicologoID = horario.PsicologoID
+		// MODIFICADO: Status inicial agora é "aguardando aprovacao"
+		consulta.Status = "aguardando aprovacao"
+		consulta.DataAgendamento = time.Now()
+
+		consultaRef := r.Client.Collection("Consultas").NewDoc()
+		consulta.ID = consultaRef.ID
+		return tx.Create(consultaRef, consulta)
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	consulta.ID = docRef.ID
-	consulta.Status = "aguardando aprovacao"
 	return &consulta, nil
 }
 
 func (r *ConsultaRepositoryImpl) AtualizaStatusConsulta(ctx context.Context, id string, novoStatus string) error {
-	_, err := r.Client.Collection("Consultas").Doc(id).Update(ctx, []firestore.Update{
+	consultaRef := r.Client.Collection("Consultas").Doc(id)
+
+	// Se o status for cancelada pelo aluno o horário fica como disponivel novamente.
+	if  novoStatus == "cancelada pelo aluno" {
+		return r.Client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+			consultaDoc, err := tx.Get(consultaRef)
+			if err != nil {
+				return fmt.Errorf("erro ao buscar consulta para atualização: %w", err)
+			}
+
+			var consulta model.Consulta
+			consultaDoc.DataTo(&consulta)
+
+			if consulta.HorarioID != "" {
+				horarioRef := r.Client.Collection("horariosDisponiveis").Doc(consulta.HorarioID)
+				
+				if _, err := tx.Get(horarioRef); err == nil {
+					if err := tx.Update(horarioRef, []firestore.Update{{Path: "status", Value: "disponivel"}}); err != nil {
+						return fmt.Errorf("erro ao reverter status do horário: %w", err)
+					}
+				}
+			}
+
+			return tx.Update(consultaRef, []firestore.Update{{Path: "status", Value: novoStatus}})
+		})
+	}
+
+	_, err := consultaRef.Update(ctx, []firestore.Update{
 		{Path: "status", Value: novoStatus},
 	})
 	if err != nil {
